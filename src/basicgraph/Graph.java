@@ -158,7 +158,7 @@ public abstract class Graph {
 	 * (Optional: only if using labeled vertices.)
 	 */
 	public void initializeLabels() {
-		vertexLabels = new HashMap<Integer,String>();
+		vertexLabels = new HashMap<>();
 	}	
 	/**
 	 * Test whether some vertex in the graph is labeled 
@@ -203,10 +203,7 @@ public abstract class Graph {
 	 * @return The String label of this vertex 
 	 */
 	public String getLabel(int v) {
-		if (vertexLabels.containsKey(v)) {
-			return vertexLabels.get(v);
-		}
-		else return null;
+        return vertexLabels.getOrDefault(v, null);
 	}
 
 	/**

@@ -36,9 +36,7 @@ public class GraphAdjMatrix extends Graph {
 		if (v >= adjMatrix.length) {
 			int[][] newAdjMatrix = new int[v*2][v*2];
 			for (int i = 0; i < adjMatrix.length; i ++) {
-				for (int j = 0; j < adjMatrix.length; j ++) {
-					newAdjMatrix[i][j] = adjMatrix[i][j];
-				}
+				System.arraycopy(adjMatrix[i], 0, newAdjMatrix[i], 0, adjMatrix.length);
 			}
 			adjMatrix = newAdjMatrix;
 		}
@@ -66,7 +64,7 @@ public class GraphAdjMatrix extends Graph {
 	 * @return List<Integer> a list of indices of vertices.  
 	 */	
 	public List<Integer> getNeighbors(int v) {
-		List<Integer> neighbors = new ArrayList<Integer>();
+		List<Integer> neighbors = new ArrayList<>();
 		for (int i = 0; i < getNumVertices(); i ++) {
 			for (int j=0; j< adjMatrix[v][i]; j ++) {
 				neighbors.add(i);
@@ -86,7 +84,7 @@ public class GraphAdjMatrix extends Graph {
 	 * @return List<Integer> a list of indices of vertices.  
 	 */
 	public List<Integer> getInNeighbors(int v) {
-		List<Integer> inNeighbors = new ArrayList<Integer>();
+		List<Integer> inNeighbors = new ArrayList<>();
 		for (int i = 0; i < getNumVertices(); i ++) {
 			for (int j=0; j< adjMatrix[i][v]; j++) {
 				inNeighbors.add(i);
@@ -105,15 +103,15 @@ public class GraphAdjMatrix extends Graph {
 	 */	
 	public List<Integer> getDistance2(int v) {
 		// XXX Implement this method in week 2
-        List<Integer> dist2hops = new ArrayList<>();
+        List<Integer> verticesIn2Hops = new ArrayList<>();
 		for (int neighbor: getNeighbors(v)) {
             for (int i = 0; i < adjMatrix.length; i++) {
                 if (adjMatrix[neighbor][i] != 0) {
-                    dist2hops.add(i);
+                    verticesIn2Hops.add(i);
                 }
             }
         }
-        return dist2hops;
+        return verticesIn2Hops;
 	}
 	
 	/**
@@ -122,15 +120,15 @@ public class GraphAdjMatrix extends Graph {
 	 */
 	public String adjacencyString() {
 		int dim = getNumVertices();
-		String s = "Adjacency matrix";
-		s += " (size " + dim + "x" + dim + " = " + dim* dim + " integers):";
+		StringBuilder s = new StringBuilder("Adjacency matrix");
+		s.append(" (size ").append(dim).append("x").append(dim).append(" = ").append(dim * dim).append(" integers):");
 		for (int i = 0; i < dim; i ++) {
-			s += "\n\t"+i+": ";
+			s.append("\n\t").append(i).append(": ");
 			for (int j = 0; j < dim; j++) {
-			s += adjMatrix[i][j] + ", ";
+			s.append(adjMatrix[i][j]).append(", ");
 			}
 		}
-		return s;
+		return s.toString();
 	}
 
 }

@@ -25,7 +25,7 @@ public class GraphAdjList extends Graph {
 	 * Create a new empty Graph
 	 */
 	public GraphAdjList () {
-		adjListsMap = new HashMap<Integer,ArrayList<Integer>>();
+		adjListsMap = new HashMap<>();
 	}
 
 	/** 
@@ -33,8 +33,7 @@ public class GraphAdjList extends Graph {
 	 */
 	public void implementAddVertex() {
 		int v = getNumVertices();
-		ArrayList<Integer> neighbors = new ArrayList<Integer>();
-		adjListsMap.put(v,  neighbors);
+		adjListsMap.put(v, new ArrayList<>());
 	}
 	
 	/** 
@@ -58,7 +57,7 @@ public class GraphAdjList extends Graph {
 	 * @return List<Integer> a list of indices of vertices.  
 	 */	
 	public List<Integer> getNeighbors(int v) {
-		return new ArrayList<Integer>(adjListsMap.get(v));
+		return new ArrayList<>(adjListsMap.get(v));
 	}
 
 	/** 
@@ -72,7 +71,7 @@ public class GraphAdjList extends Graph {
 	 * @return List<Integer> a list of indices of vertices.  
 	 */	
 	public List<Integer> getInNeighbors(int v) {
-		List<Integer> inNeighbors = new ArrayList<Integer>();
+		List<Integer> inNeighbors = new ArrayList<>();
 		for (int u : adjListsMap.keySet()) {
 			//iterate through all edges in u's adjacency list and 
 			//add u to the inNeighbor list of v whenever an edge
@@ -96,11 +95,11 @@ public class GraphAdjList extends Graph {
 	 */		
 	 public List<Integer> getDistance2(int v) {
 		 // XXX: Implement this method in week 2
-         List<Integer> dist2hops = new ArrayList<>();
+         List<Integer> verticesIn2Hops = new ArrayList<>();
 		 for (int neighbor : getNeighbors(v)) {
-			 dist2hops.addAll(getNeighbors(neighbor));
+			 verticesIn2Hops.addAll(getNeighbors(neighbor));
          }
-         return dist2hops;
+         return verticesIn2Hops;
 	}
 	
 	/**
@@ -108,19 +107,15 @@ public class GraphAdjList extends Graph {
 	 * @return the String
 	 */
 	public String adjacencyString() {
-		String s = "Adjacency list";
-		s += " (size " + getNumVertices() + "+" + getNumEdges() + " integers):";
+		StringBuilder s = new StringBuilder("Adjacency list");
+		s.append(" (size ").append(getNumVertices()).append("+").append(getNumEdges()).append(" integers):");
 
 		for (int v : adjListsMap.keySet()) {
-			s += "\n\t"+v+": ";
+			s.append("\n\t").append(v).append(": ");
 			for (int w : adjListsMap.get(v)) {
-				s += w+", ";
+				s.append(w).append(", ");
 			}
 		}
-		return s;
+		return s.toString();
 	}
-
-
-
-
 }
