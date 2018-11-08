@@ -120,12 +120,7 @@ public abstract class Graph {
         for (int i = 0; i < numVertices; i++) {
             degrees.add(getNeighbors(i).size() + getInNeighbors(i).size());
         }
-        degrees.sort(new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return o2 - o1;
-            }
-        });
+        degrees.sort((o1, o2) -> o2 - o1);
         return degrees;
 	}
 	

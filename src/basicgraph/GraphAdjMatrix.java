@@ -106,8 +106,7 @@ public class GraphAdjMatrix extends Graph {
 	public List<Integer> getDistance2(int v) {
 		// XXX Implement this method in week 2
         List<Integer> dist2hops = new ArrayList<>();
-        List<Integer> neighbors = getNeighbors(v);
-        for (int neighbor:neighbors) {
+		for (int neighbor: getNeighbors(v)) {
             for (int i = 0; i < adjMatrix.length; i++) {
                 if (adjMatrix[neighbor][i] != 0) {
                     dist2hops.add(i);
