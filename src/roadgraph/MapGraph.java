@@ -64,8 +64,6 @@ public class MapGraph {
 		return numEdges;
 	}
 
-	
-	
 	/** Add a node corresponding to an intersection at a Geographic Point
 	 * If the location is already in the graph or null, this method does 
 	 * not change the graph.
@@ -106,6 +104,17 @@ public class MapGraph {
         adjList.get(from).add(to);
 	}
 
+    /**
+     * Helper method for addEdge(...)
+     * @param from The starting point of the edge
+     * @param to The ending point of the edge
+     * @param roadName The name of the road
+     * @param roadType The type of the road
+     * @param length The length of the road, in km
+     * @throws IllegalArgumentException If the points have not already been
+     *   added as nodes to the graph, if any of the arguments is null,
+     *   or if the length is less than 0.     *
+     */
     private void preconditionChecks(GeographicPoint from,
                                     GeographicPoint to,
                                     String roadName,
@@ -122,7 +131,6 @@ public class MapGraph {
             throw new IllegalArgumentException("road length has to be positive");
         }
     }
-
 
     /** Find the path from start to goal using breadth first search
 	 * 
@@ -149,11 +157,14 @@ public class MapGraph {
 			 					     GeographicPoint goal,
                                      Consumer<GeographicPoint> nodeSearched)
 	{
+	    // Initializing data structures
         HashSet<GeographicPoint> visited = new HashSet<>();
         Queue<GeographicPoint> toExplore = new LinkedList<>();
         HashMap<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
         toExplore.add(start);
 
+        // if bfsSearch(...) returns true, then it found the path, and we use constructPath(...) helper method
+        // to record it, otherwise we return empty list
         if (bfsSearch(goal, visited, toExplore, parentMap, nodeSearched)) {
             return constructPath(start, goal, parentMap);
         } else {
@@ -162,6 +173,13 @@ public class MapGraph {
         }
 	}
 
+    /**
+     * Helper method for bfs(...) that constructs and returns path from start to goal
+     * @param start The starting location
+     * @param goal The goal location
+     * @param parentMap Map to keep track of connections between locations
+     * @return list of GeographicPoints ordered from start to goal locations
+     */
     private List<GeographicPoint> constructPath(GeographicPoint start,
                                                 GeographicPoint goal,
                                                 HashMap<GeographicPoint, GeographicPoint> parentMap)
@@ -176,6 +194,15 @@ public class MapGraph {
         return path;
     }
 
+    /**
+     * Helper method for bfs(...) that contains searching logic
+     * @param goal The goal location
+     * @param visited Set to keep track of visited locations
+     * @param toExplore Queue to process locations one by one
+     * @param parentMap Map to keep track of connections between locations
+     * @param nodeSearched Consumer used for adding visualization feature to MapApp tool
+     * @return true if path is found, false otherwise
+     */
     private boolean bfsSearch(GeographicPoint goal,
                               HashSet<GeographicPoint> visited,
                               Queue<GeographicPoint> toExplore,
