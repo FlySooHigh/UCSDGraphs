@@ -22,14 +22,12 @@ import util.GraphLoader;
  *
  */
 public class MapGraph {
-	private Set<GeographicPoint> vertices;
-	private Map<GeographicPoint, ArrayList<GeographicPoint>> adjList;
+    private Map<GeographicPoint, ArrayList<GeographicPoint>> adjList;
 	/**
 	 * Create a new empty MapGraph 
 	 */
 	public MapGraph()
 	{
-        vertices = new HashSet<>();
         adjList = new HashMap<>();
 	}
 	
@@ -39,7 +37,7 @@ public class MapGraph {
 	 */
 	public int getNumVertices()
 	{
-		return vertices.size();
+		return getVertices().size();
 	}
 	
 	/**
@@ -48,7 +46,7 @@ public class MapGraph {
 	 */
 	public Set<GeographicPoint> getVertices()
 	{
-		return vertices;
+	    return adjList.keySet();
 	}
 	
 	/**
@@ -74,7 +72,7 @@ public class MapGraph {
 	public boolean addVertex(GeographicPoint location)
     {
         if (location != null) {
-            if (vertices.add(location)) {
+            if (!adjList.containsKey(location)) {
                 adjList.put(location, new ArrayList<>());
                 return true;
             }
@@ -121,9 +119,9 @@ public class MapGraph {
                                     String roadType,
                                     double length)
     {
-        if (!vertices.contains(from)){
+        if (!adjList.containsKey(from)){
             throw new IllegalArgumentException("from is not added to the graph");
-        } else if (!vertices.contains(to)) {
+        } else if (!adjList.containsKey(to)) {
             throw new IllegalArgumentException("to is not added to the graph");
         } else if (roadName == null || roadType == null) {
             throw new IllegalArgumentException("roadName and roadType must be added");
