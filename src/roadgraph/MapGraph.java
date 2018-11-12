@@ -22,6 +22,7 @@ import util.GraphLoader;
  *
  */
 public class MapGraph {
+
     private Map<GeographicPoint, ArrayList<GeographicPoint>> adjList;
 	/**
 	 * Create a new empty MapGraph 
@@ -257,8 +258,16 @@ public class MapGraph {
 
 		// Hook for visualization.  See writeup.
 		//nodeSearched.accept(next.getLocation());
-		
-		return null;
+
+        PriorityQueue<Node> toExplore = new PriorityQueue<>();
+        HashSet<Node> visited = new HashSet<>();
+        HashMap<Node, Node> parentMap = new HashMap<>();
+
+        toExplore.add(new Node(start));
+
+
+
+        return null;
 	}
 
 	/** Find the path from start to goal using A-Star search
