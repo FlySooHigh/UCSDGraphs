@@ -23,7 +23,7 @@ import util.GraphLoader;
  */
 public class MapGraph {
 
-    private Map<GeographicPoint, ArrayList<GeographicPoint>> adjList;
+    private Map<Node, ArrayList<Node>> adjList;
 	/**
 	 * Create a new empty MapGraph 
 	 */
@@ -47,7 +47,12 @@ public class MapGraph {
 	 */
 	public Set<GeographicPoint> getVertices()
 	{
-	    return adjList.keySet();
+        Set<Node> nodes = adjList.keySet();
+        Set<GeographicPoint> geographicPoints = new HashSet<>();
+        for (Node node : nodes){
+            geographicPoints.add(node.getGeoPoint());
+        }
+        return geographicPoints;
 	}
 	
 	/**
@@ -57,8 +62,8 @@ public class MapGraph {
 	public int getNumEdges()
 	{
         int numEdges = 0;
-        for (List<GeographicPoint> destinations : adjList.values()){
-            numEdges += destinations.size();
+        for (List<Node> nodes : adjList.values()){
+            numEdges += nodes.size();
         }
 		return numEdges;
 	}
@@ -73,10 +78,13 @@ public class MapGraph {
 	public boolean addVertex(GeographicPoint location)
     {
         if (location != null) {
-            if (!adjList.containsKey(location)) {
-                adjList.put(location, new ArrayList<>());
-                return true;
+            for (Node node:adjList.keySet()){
+                if (node.getGeoPoint().equals(location)) {
+                    return false;
+                }
             }
+            adjList.put(new Node(location), new ArrayList<>());
+            return true;
         }
         return false;
     }
@@ -100,7 +108,12 @@ public class MapGraph {
                         double length) throws IllegalArgumentException
     {
         preconditionChecks(from, to, roadName, roadType, length);
-        adjList.get(from).add(to);
+        Edge edge = new Edge(from, to, roadName, roadType, length);
+        Node nodeFrom = new Node(from);
+        nodeFrom.getEdges().add(edge);
+        Node nodeTo = new Node(to);
+        nodeTo.getEdges().add(edge);
+        adjList.get(nodeFrom).add(nodeTo);
 	}
 
     /**
@@ -120,11 +133,24 @@ public class MapGraph {
                                     String roadType,
                                     double length)
     {
-        if (!adjList.containsKey(from)){
+        boolean fromOk = false;
+        boolean toOk = false;
+        for (Node node : adjList.keySet()) {
+            if (node.getGeoPoint().equals(from)) {
+                fromOk = true;
+            }
+            if (node.getGeoPoint().equals(to)) {
+                toOk = true;
+            }
+        }
+        if (!fromOk) {
             throw new IllegalArgumentException("from is not added to the graph");
-        } else if (!adjList.containsKey(to)) {
+        }
+        if (!toOk) {
             throw new IllegalArgumentException("to is not added to the graph");
-        } else if (roadName == null || roadType == null) {
+        }
+
+        if (roadName == null || roadType == null) {
             throw new IllegalArgumentException("roadName and roadType must be added");
         }  else if (length < 0) {
             throw new IllegalArgumentException("road length has to be positive");
@@ -213,8 +239,12 @@ public class MapGraph {
             if (curr.equals(goal)) {
 				return true;
             }
-            List<GeographicPoint> neighbors = adjList.get(curr);
-            ListIterator<GeographicPoint> it = neighbors.listIterator(neighbors.size());
+            List<Node> neighborNodes = adjList.get(new Node(curr));
+            List<GeographicPoint> geographicPoints = new ArrayList<>();
+            for (Node node : neighborNodes) {
+                geographicPoints.add(node.getGeoPoint());
+            }
+            ListIterator<GeographicPoint> it = geographicPoints.listIterator(geographicPoints.size());
             while (it.hasPrevious()) {
                 GeographicPoint next = it.previous();
                 nodeSearched.accept(next);
@@ -306,15 +336,15 @@ public class MapGraph {
 	
 	public static void main(String[] args)
 	{
-		System.out.print("Making a new map...");
-		MapGraph firstMap = new MapGraph();
-		System.out.print("DONE. \nLoading the map...");
-		GraphLoader.loadRoadMap("data/testdata/simpletest.map", firstMap);
-        System.out.println("DONE.");
-
-        GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
-        GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
-        System.out.println("BFS path : " + firstMap.bfs(testStart, testEnd));
+//		System.out.print("Making a new map...");
+//		MapGraph firstMap = new MapGraph();
+//		System.out.print("DONE. \nLoading the map...");
+//		GraphLoader.loadRoadMap("data/testdata/simpletest.map", firstMap);
+//        System.out.println("DONE.");
+//
+//        GeographicPoint testStart1 = new GeographicPoint(1.0, 1.0);
+//        GeographicPoint testEnd1 = new GeographicPoint(8.0, -1.0);
+//        System.out.println("BFS path : " + firstMap.bfs(testStart1, testEnd1));
 
 
 		// You can use this method for testing.  
@@ -324,18 +354,20 @@ public class MapGraph {
 		 * the Week 3 End of Week Quiz, EVEN IF you score 100% on the 
 		 * programming assignment.
 		 */
-		/*
+
 		MapGraph simpleTestMap = new MapGraph();
 		GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
 
 		GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
 		GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
-		
+
 		System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
 		List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
+		System.out.println(testroute);
 		List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
+		System.out.println(testroute2);
 		
-		
+		/*
 		MapGraph testMap = new MapGraph();
 		GraphLoader.loadRoadMap("data/maps/utc.map", testMap);
 		
