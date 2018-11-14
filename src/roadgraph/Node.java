@@ -11,10 +11,22 @@ public class Node implements Comparable{
     private List<Edge> egdes;
     private double distance;
 
+
+    private double predictedDist;
+
     public Node(GeographicPoint geoPoint) {
         this.geoPoint = geoPoint;
         egdes = new ArrayList<>();
         distance = Double.MAX_VALUE;
+        predictedDist = Double.MAX_VALUE;
+    }
+
+    public double getPredictedDist() {
+        return predictedDist;
+    }
+
+    public void setPredictedDist(double predictedDist) {
+        this.predictedDist = predictedDist;
     }
 
     public GeographicPoint getGeoPoint() {
@@ -41,6 +53,7 @@ public class Node implements Comparable{
         this.distance = distance;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -58,6 +71,13 @@ public class Node implements Comparable{
     @Override
     public int compareTo(Object o) {
         Node other = (Node) o;
-        return (int) (this.distance - other.distance);
+        if (this.distance - other.distance < 0) {
+            return -1;
+        } else if (this.distance - other.distance > 0) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
+
 }

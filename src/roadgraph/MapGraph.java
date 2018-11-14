@@ -289,7 +289,6 @@ public class MapGraph {
                                           GeographicPoint goal,
                                           Consumer<GeographicPoint> nodeSearched)
     {
-        // TODO: Implement this method in WEEK 4
         PriorityQueue<Node> nodePriorityQueue = new PriorityQueue<>();
         HashSet<Node> visitedNodes = new HashSet<>();
         HashMap<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
@@ -299,6 +298,7 @@ public class MapGraph {
 
         startNode.setDistance(0);
         nodePriorityQueue.add(startNode);
+        int count = 0;
 
         while (!nodePriorityQueue.isEmpty()) {
             Node currNode = nodePriorityQueue.remove();
@@ -306,20 +306,22 @@ public class MapGraph {
                 visitedNodes.add(currNode);
                 nodeSearched.accept(currNode.getGeoPoint());
                 System.out.print("* ");
+                count++;
                 if (currNode.equals(goalNode)) {
+                    System.out.println(count);
                     return constructPath(start, goal, parentMap);
                 }
                 for (Edge edge : currNode.getEdges()){
                     GeographicPoint geoPoint2 = edge.getGeoPoint2();
-                    Node neighbor = getNodeByGeoPoint(geoPoint2);
-                    if (!visitedNodes.contains(neighbor)) {
+                    Node neighborNode = getNodeByGeoPoint(geoPoint2);
+                    if (!visitedNodes.contains(neighborNode)) {
                         double edgeLength = edge.getLength();
                         double distFromStart = currNode.getDistance() + edgeLength;
-                        if (!nodePriorityQueue.contains(neighbor)) {
-                            updatePQueue(nodePriorityQueue, parentMap, currNode, neighbor, distFromStart);
+                        if (!nodePriorityQueue.contains(neighborNode)) {
+                            updatePQueue(nodePriorityQueue, parentMap, currNode, neighborNode, distFromStart);
                         } else {
-                            if (distFromStart < neighbor.getDistance()) {
-                                updatePQueue(nodePriorityQueue, parentMap, currNode, neighbor, distFromStart);
+                            if (distFromStart < neighborNode.getDistance()) {
+                                updatePQueue(nodePriorityQueue, parentMap, currNode, neighborNode, distFromStart);
                             }
                         }
                     }
@@ -372,17 +374,74 @@ public class MapGraph {
      *   start to goal (including both start and goal).
      */
     public List<GeographicPoint> aStarSearch(GeographicPoint start,
-                                             GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
+                                             GeographicPoint goal,
+                                             Consumer<GeographicPoint> nodeSearched)
     {
-        // TODO: Implement this method in WEEK 4
+        PriorityQueue<Node> nodePriorityQueue = new PriorityQueue<>((o1, o2) -> {
+            if (o1.getPredictedDist() - o2.getPredictedDist() < 0) {
+                return -1;
+            } else if (o1.getPredictedDist() - o2.getPredictedDist() > 0) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+        HashSet<Node> visitedNodes = new HashSet<>();
+        HashMap<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
 
-        // Hook for visualization.  See writeup.
-        //nodeSearched.accept(next.getLocation());
+        Node startNode = getNodeByGeoPoint(start);
+        Node goalNode = getNodeByGeoPoint(goal);
 
-        return null;
+        startNode.setDistance(0);
+        startNode.setPredictedDist(goal.distance(start));
+        nodePriorityQueue.add(startNode);
+        int count = 0;
+
+        while (!nodePriorityQueue.isEmpty()) {
+            Node currNode = nodePriorityQueue.remove();
+            if (!visitedNodes.contains(currNode)) {
+                visitedNodes.add(currNode);
+                nodeSearched.accept(currNode.getGeoPoint());
+                System.out.print("* ");
+                count++;
+                if (currNode.equals(goalNode)) {
+                    System.out.println(count);
+                    return constructPath(start, goal, parentMap);
+                }
+                for (Edge edge : currNode.getEdges()){
+                    GeographicPoint geoPoint2 = edge.getGeoPoint2();
+                    Node neighborNode = getNodeByGeoPoint(geoPoint2);
+                    if (!visitedNodes.contains(neighborNode)) {
+                        double edgeLength = edge.getLength();
+                        double distFromStartToNeighbor = currNode.getDistance() + edgeLength;
+                        double neighborPredictedDist = goal.distance(neighborNode.getGeoPoint());
+                        if (!nodePriorityQueue.contains(neighborNode)) {
+                            updatePQueueAStar(nodePriorityQueue, parentMap, currNode, neighborNode, distFromStartToNeighbor, neighborPredictedDist);
+                        } else {
+                            if (distFromStartToNeighbor < neighborNode.getDistance()) {
+                                updatePQueueAStar(nodePriorityQueue, parentMap, currNode, neighborNode, distFromStartToNeighbor, neighborPredictedDist);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println("No path exists");
+        return new ArrayList<>();
     }
 
-
+    private void updatePQueueAStar(PriorityQueue<Node> nodePriorityQueue,
+                                   HashMap<GeographicPoint, GeographicPoint> parentMap,
+                                   Node currNode,
+                                   Node neighborNode,
+                                   double distFromStartToNeighbor,
+                                   double neighborPredictedDist)
+    {
+        neighborNode.setDistance(distFromStartToNeighbor);
+        neighborNode.setPredictedDist(distFromStartToNeighbor + neighborPredictedDist);
+        parentMap.put(neighborNode.getGeoPoint(), currNode.getGeoPoint());
+        nodePriorityQueue.add(neighborNode);
+    }
 
     public static void main(String[] args)
     {
@@ -405,41 +464,51 @@ public class MapGraph {
 		 * programming assignment.
 		 */
 
-        MapGraph simpleTestMap = new MapGraph();
-        GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
+//		Dijkstra TEST 1
 
-        GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
-        GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
+//        MapGraph simpleTestMap = new MapGraph();
+//        GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
+//
+//        GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
+//        GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
+//
+//        System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
+//        List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
+//        System.out.println(testroute);
+//        List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
+//        System.out.println(testroute2);
 
-        System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
-        List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
-        System.out.println(testroute);
-        List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
-        System.out.println(testroute2);
-		
-		/*
-		MapGraph testMap = new MapGraph();
-		GraphLoader.loadRoadMap("data/maps/utc.map", testMap);
-		
-		// A very simple test using real data
-		testStart = new GeographicPoint(32.869423, -117.220917);
-		testEnd = new GeographicPoint(32.869255, -117.216927);
-		System.out.println("Test 2 using utc: Dijkstra should be 13 and AStar should be 5");
-		testroute = testMap.dijkstra(testStart,testEnd);
-		testroute2 = testMap.aStarSearch(testStart,testEnd);
-		
-		
+//		Dijkstra TEST 2
+
+//		MapGraph testMap = new MapGraph();
+//		GraphLoader.loadRoadMap("data/maps/utc.map", testMap);
+//
+//		// A very simple test using real data
+//        GeographicPoint testStart = new GeographicPoint(32.869423, -117.220917);
+//        GeographicPoint testEnd = new GeographicPoint(32.869255, -117.216927);
+//		System.out.println("Test 2 using utc: Dijkstra should be 13 and AStar should be 5");
+//        List<GeographicPoint> testroute = testMap.dijkstra(testStart,testEnd);
+//        System.out.println(testroute);
+//        List<GeographicPoint> testroute2 = testMap.aStarSearch(testStart,testEnd);
+//        System.out.println(testroute2);
+
+        //		Dijkstra TEST 3
+
 		// A slightly more complex test using real data
-		testStart = new GeographicPoint(32.8674388, -117.2190213);
-		testEnd = new GeographicPoint(32.8697828, -117.2244506);
-		System.out.println("Test 3 using utc: Dijkstra should be 37 and AStar should be 10");
-		testroute = testMap.dijkstra(testStart,testEnd);
-		testroute2 = testMap.aStarSearch(testStart,testEnd);
-		*/
+//   		MapGraph testMap = new MapGraph();
+//		GraphLoader.loadRoadMap("data/maps/utc.map", testMap);
+//        GeographicPoint testStart = new GeographicPoint(32.8674388, -117.2190213);
+//        GeographicPoint testEnd = new GeographicPoint(32.8697828, -117.2244506);
+//		System.out.println("Test 3 using utc: Dijkstra should be 37 and AStar should be 10");
+//        List<GeographicPoint> testroute = testMap.dijkstra(testStart,testEnd);
+//        System.out.println(testroute);
+//        List<GeographicPoint> testroute2 = testMap.aStarSearch(testStart,testEnd);
+//        System.out.println(testroute2);
+
 		
 		
 		/* Use this code in Week 3 End of Week Quiz */
-		/*MapGraph theMap = new MapGraph();
+		MapGraph theMap = new MapGraph();
 		System.out.print("DONE. \nLoading the map...");
 		GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
 		System.out.println("DONE.");
@@ -449,9 +518,10 @@ public class MapGraph {
 		
 		
 		List<GeographicPoint> route = theMap.dijkstra(start,end);
-		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
+        System.out.println(route);
+        List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
+        System.out.println(route2);
 
-		*/
 
     }
 
