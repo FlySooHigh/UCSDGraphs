@@ -302,11 +302,11 @@ public class MapGraph {
 
         while (!nodePriorityQueue.isEmpty()) {
             Node currNode = nodePriorityQueue.remove();
+            nodeSearched.accept(currNode.getGeoPoint());
+            System.out.print("* ");
+            count++;
             if (!visitedNodes.contains(currNode)) {
                 visitedNodes.add(currNode);
-                nodeSearched.accept(currNode.getGeoPoint());
-                System.out.print("* ");
-                count++;
                 if (currNode.equals(goalNode)) {
                     System.out.println(count);
                     return constructPath(start, goal, parentMap);
@@ -399,11 +399,12 @@ public class MapGraph {
 
         while (!nodePriorityQueue.isEmpty()) {
             Node currNode = nodePriorityQueue.remove();
+//            System.out.println(currNode.toString());
+            nodeSearched.accept(currNode.getGeoPoint());
+            System.out.print("* ");
+            count++;
             if (!visitedNodes.contains(currNode)) {
                 visitedNodes.add(currNode);
-                nodeSearched.accept(currNode.getGeoPoint());
-                System.out.print("* ");
-                count++;
                 if (currNode.equals(goalNode)) {
                     System.out.println(count);
                     return constructPath(start, goal, parentMap);
@@ -508,16 +509,29 @@ public class MapGraph {
 		
 		
 		/* Use this code in Week 3 End of Week Quiz */
-		MapGraph theMap = new MapGraph();
-		System.out.print("DONE. \nLoading the map...");
-		GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
-		System.out.println("DONE.");
+//		MapGraph theMap = new MapGraph();
+//		System.out.print("DONE. \nLoading the map...");
+//		GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
+//		System.out.println("DONE.");
+//
+//		GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
+//		GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
+//
+//
+//		List<GeographicPoint> route = theMap.dijkstra(start,end);
+//        System.out.println(route);
+//        List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
+//        System.out.println(route2);
 
-		GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
-		GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
-		
-		
-		List<GeographicPoint> route = theMap.dijkstra(start,end);
+        MapGraph theMap = new MapGraph();
+        System.out.print("DONE. \nLoading the map...");
+        GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
+        System.out.println("DONE.");
+
+        GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
+        GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
+
+        List<GeographicPoint> route = theMap.dijkstra(start,end);
         System.out.println(route);
         List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
         System.out.println(route2);

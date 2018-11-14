@@ -36,4 +36,15 @@ public class Edge {
     public double getLength() {
         return length;
     }
+
+    @Override
+    public String toString() {
+        return "Edge{" +
+                "geoPoint1=" + geoPoint1 +
+                ", geoPoint2=" + geoPoint2 +
+                ", roadName='" + roadName + '\'' +
+                ", roadType='" + roadType + '\'' +
+                ", length=" + length +
+                '}';
+    }
 }
