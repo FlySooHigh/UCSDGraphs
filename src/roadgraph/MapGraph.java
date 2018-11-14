@@ -290,51 +290,36 @@ public class MapGraph {
                                           Consumer<GeographicPoint> nodeSearched)
     {
         // TODO: Implement this method in WEEK 4
-        PriorityQueue<Node> toExplore = new PriorityQueue<>();
-        HashSet<Node> visited = new HashSet<>();
-        HashMap<Node, Node> parentMap = new HashMap<>();
+        PriorityQueue<Node> nodePriorityQueue = new PriorityQueue<>();
+        HashSet<Node> visitedNodes = new HashSet<>();
+        HashMap<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
 
         Node startNode = getNodeByGeoPoint(start);
         Node goalNode = getNodeByGeoPoint(goal);
 
         startNode.setDistance(0);
-        toExplore.add(startNode);
+        nodePriorityQueue.add(startNode);
 
-        while (!toExplore.isEmpty()) {
-            Node currNode = toExplore.remove();
-            if (!visited.contains(currNode)) {
-                visited.add(currNode);
+        while (!nodePriorityQueue.isEmpty()) {
+            Node currNode = nodePriorityQueue.remove();
+            if (!visitedNodes.contains(currNode)) {
+                visitedNodes.add(currNode);
+                nodeSearched.accept(currNode.getGeoPoint());
+                System.out.print("* ");
                 if (currNode.equals(goalNode)) {
-                    LinkedList<GeographicPoint> path = new LinkedList<>();
-                    GeographicPoint curr = goal;
-                    while (!curr.equals(start)) {
-                        path.addFirst(curr);
-                        curr = parentMap.get(getNodeByGeoPoint(curr)).getGeoPoint();
-                    }
-                    path.addFirst(start);
-                    return path;
+                    return constructPath(start, goal, parentMap);
                 }
-                for (Edge edge1 : currNode.getEdges()){
-                    GeographicPoint geoPoint2 = edge1.getGeoPoint2();
+                for (Edge edge : currNode.getEdges()){
+                    GeographicPoint geoPoint2 = edge.getGeoPoint2();
                     Node neighbor = getNodeByGeoPoint(geoPoint2);
-                    if (!visited.contains(neighbor)) {
-                        nodeSearched.accept(neighbor.getGeoPoint());
-                        double distance = 0;
-                        for (Edge edge: currNode.getEdges()){
-                            if (edge.getGeoPoint2().equals(neighbor.getGeoPoint())) {
-                                distance = edge.getLength();
-                                break;
-                            }
-                        }
-                        if (!toExplore.contains(neighbor)) {
-                            neighbor.setDistance(currNode.getDistance() + distance);
-                            parentMap.put(neighbor, currNode);
-                            toExplore.add(neighbor);
+                    if (!visitedNodes.contains(neighbor)) {
+                        double edgeLength = edge.getLength();
+                        double distFromStart = currNode.getDistance() + edgeLength;
+                        if (!nodePriorityQueue.contains(neighbor)) {
+                            updatePQueue(nodePriorityQueue, parentMap, currNode, neighbor, distFromStart);
                         } else {
-                            if (currNode.getDistance() + distance < neighbor.getDistance()) {
-                                neighbor.setDistance(currNode.getDistance() + distance);
-                                parentMap.put(neighbor, currNode);
-                                toExplore.add(neighbor);
+                            if (distFromStart < neighbor.getDistance()) {
+                                updatePQueue(nodePriorityQueue, parentMap, currNode, neighbor, distFromStart);
                             }
                         }
                     }
@@ -345,15 +330,24 @@ public class MapGraph {
         return new ArrayList<>();
     }
 
+    private void updatePQueue(PriorityQueue<Node> nodePriorityQueue,
+                              HashMap<GeographicPoint, GeographicPoint> parentMap,
+                              Node currNode,
+                              Node neighbor,
+                              double distFromStart)
+    {
+        neighbor.setDistance(distFromStart);
+        parentMap.put(neighbor.getGeoPoint(), currNode.getGeoPoint());
+        nodePriorityQueue.add(neighbor);
+    }
+
     private Node getNodeByGeoPoint(GeographicPoint geoPoint) {
-        Node goalNode = null;
         for (Node node : nodeSet) {
             if (node.getGeoPoint().equals(geoPoint)) {
-                goalNode = node;
-                break;
+                return node;
             }
         }
-        return goalNode;
+        return null;
     }
 
     /** Find the path from start to goal using A-Star search
