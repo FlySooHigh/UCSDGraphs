@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Node {
+public class Node implements Comparable{
     private GeographicPoint geoPoint;
     private List<Edge> egdes;
     private double distance;
@@ -37,7 +37,7 @@ public class Node {
         this.egdes = egdes;
     }
 
-    public void setDistance(int distance) {
+    public void setDistance(double distance) {
         this.distance = distance;
     }
 
@@ -46,11 +46,18 @@ public class Node {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Node node = (Node) o;
-        return Objects.equals(geoPoint, node.geoPoint);
+        return Double.compare(node.distance, distance) == 0 &&
+                Objects.equals(geoPoint, node.geoPoint);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(geoPoint);
+        return Objects.hash(geoPoint, distance);
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        Node other = (Node) o;
+        return (int) (this.distance - other.distance);
     }
 }

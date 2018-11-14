@@ -1,6 +1,6 @@
 /**
  * @author UCSD MOOC development team and YOU
- * 
+ *
  * A class which reprsents a graph of geographic locations
  * Nodes in the graph are intersections between 
  *
@@ -10,111 +10,111 @@ package roadgraph;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import geography.GeographicPoint;
 import util.GraphLoader;
 
 /**
  * @author UCSD MOOC development team and YOU
- * 
+ *
  * A class which represents a graph of geographic locations
  * Nodes in the graph are intersections between 
  *
  */
 public class MapGraph {
 
-    private Map<Node, ArrayList<Node>> adjList;
-	/**
-	 * Create a new empty MapGraph 
-	 */
-	public MapGraph()
-	{
-        adjList = new HashMap<>();
-	}
-	
-	/**
-	 * Get the number of vertices (road intersections) in the graph
-	 * @return The number of vertices in the graph.
-	 */
-	public int getNumVertices()
-	{
-		return getVertices().size();
-	}
-	
-	/**
-	 * Return the intersections, which are the vertices in this graph.
-	 * @return The vertices in this graph as GeographicPoints
-	 */
-	public Set<GeographicPoint> getVertices()
-	{
-        Set<Node> nodes = adjList.keySet();
-        Set<GeographicPoint> geographicPoints = new HashSet<>();
-        for (Node node : nodes){
-            geographicPoints.add(node.getGeoPoint());
-        }
-        return geographicPoints;
-	}
-	
-	/**
-	 * Get the number of road segments in the graph
-	 * @return The number of edges in the graph.
-	 */
-	public int getNumEdges()
-	{
-        int numEdges = 0;
-        for (List<Node> nodes : adjList.values()){
-            numEdges += nodes.size();
-        }
-		return numEdges;
-	}
+//    private Map<Node, ArrayList<Node>> nodeSet;
+    private Set<Node> nodeSet;
+    /**
+     * Create a new empty MapGraph
+     */
+    public MapGraph()
+    {
+        nodeSet = new HashSet<>();
+    }
 
-	/** Add a node corresponding to an intersection at a Geographic Point
-	 * If the location is already in the graph or null, this method does 
-	 * not change the graph.
-	 * @param location  The location of the intersection
-	 * @return true if a node was added, false if it was not (the node
-	 * was already in the graph, or the parameter is null).
-	 */
-	public boolean addVertex(GeographicPoint location)
+    /**
+     * Get the number of vertices (road intersections) in the graph
+     * @return The number of vertices in the graph.
+     */
+    public int getNumVertices()
+    {
+        return getVertices().size();
+    }
+
+    /**
+     * Return the intersections, which are the vertices in this graph.
+     * @return The vertices in this graph as GeographicPoints
+     */
+    public Set<GeographicPoint> getVertices()
+    {
+//        Set<Node> nodes = nodeSet.keySet();
+        return nodeSet.stream().map(Node::getGeoPoint).collect(Collectors.toSet());
+    }
+
+    /**
+     * Get the number of road segments in the graph
+     * @return The number of edges in the graph.
+     */
+    public int getNumEdges()
+    {
+        int numEdges = 0;
+        for (Node node : nodeSet){
+            numEdges += node.getEdges().size();
+        }
+        return numEdges;
+    }
+
+    /** Add a node corresponding to an intersection at a Geographic Point
+     * If the location is already in the graph or null, this method does
+     * not change the graph.
+     * @param location  The location of the intersection
+     * @return true if a node was added, false if it was not (the node
+     * was already in the graph, or the parameter is null).
+     */
+    public boolean addVertex(GeographicPoint location)
     {
         if (location != null) {
-            for (Node node:adjList.keySet()){
+            for (Node node: nodeSet){
                 if (node.getGeoPoint().equals(location)) {
                     return false;
                 }
             }
-            adjList.put(new Node(location), new ArrayList<>());
+            nodeSet.add(new Node(location));
             return true;
         }
         return false;
     }
-	
-	/**
-	 * Adds a directed edge to the graph from pt1 to pt2.  
-	 * Precondition: Both GeographicPoints have already been added to the graph
-	 * @param from The starting point of the edge
-	 * @param to The ending point of the edge
-	 * @param roadName The name of the road
-	 * @param roadType The type of the road
-	 * @param length The length of the road, in km
-	 * @throws IllegalArgumentException If the points have not already been
-	 *   added as nodes to the graph, if any of the arguments is null,
-	 *   or if the length is less than 0.
-	 */
-	public void addEdge(GeographicPoint from,
+
+    /**
+     * Adds a directed edge to the graph from pt1 to pt2.
+     * Precondition: Both GeographicPoints have already been added to the graph
+     * @param from The starting point of the edge
+     * @param to The ending point of the edge
+     * @param roadName The name of the road
+     * @param roadType The type of the road
+     * @param length The length of the road, in km
+     * @throws IllegalArgumentException If the points have not already been
+     *   added as nodes to the graph, if any of the arguments is null,
+     *   or if the length is less than 0.
+     */
+    public void addEdge(GeographicPoint from,
                         GeographicPoint to,
                         String roadName,
-			            String roadType,
+                        String roadType,
                         double length) throws IllegalArgumentException
     {
         preconditionChecks(from, to, roadName, roadType, length);
         Edge edge = new Edge(from, to, roadName, roadType, length);
-        Node nodeFrom = new Node(from);
-        nodeFrom.getEdges().add(edge);
-        Node nodeTo = new Node(to);
-        nodeTo.getEdges().add(edge);
-        adjList.get(nodeFrom).add(nodeTo);
-	}
+
+        for (Node node : nodeSet) {
+            if (node.getGeoPoint().equals(from)) {
+                node.getEdges().add(edge);
+                break;
+            }
+        }
+    }
 
     /**
      * Helper method for addEdge(...)
@@ -135,7 +135,7 @@ public class MapGraph {
     {
         boolean fromOk = false;
         boolean toOk = false;
-        for (Node node : adjList.keySet()) {
+        for (Node node : nodeSet) {
             if (node.getGeoPoint().equals(from)) {
                 fromOk = true;
             }
@@ -158,31 +158,31 @@ public class MapGraph {
     }
 
     /** Find the path from start to goal using breadth first search
-	 * 
-	 * @param start The starting location
-	 * @param goal The goal location
-	 * @return The list of intersections that form the shortest (unweighted)
-	 *   path from start to goal (including both start and goal).
-	 */
-	public List<GeographicPoint> bfs(GeographicPoint start, GeographicPoint goal) {
-		// Dummy variable for calling the search algorithms
+     *
+     * @param start The starting location
+     * @param goal The goal location
+     * @return The list of intersections that form the shortest (unweighted)
+     *   path from start to goal (including both start and goal).
+     */
+    public List<GeographicPoint> bfs(GeographicPoint start, GeographicPoint goal) {
+        // Dummy variable for calling the search algorithms
         Consumer<GeographicPoint> temp = (x) -> {};
         return bfs(start, goal, temp);
-	}
-	
-	/** Find the path from start to goal using breadth first search
-	 * 
-	 * @param start The starting location
-	 * @param goal The goal location
-	 * @param nodeSearched A hook for visualization.  See assignment instructions for how to use it.
-	 * @return The list of intersections that form the shortest (unweighted)
-	 *   path from start to goal (including both start and goal).
-	 */
-	public List<GeographicPoint> bfs(GeographicPoint start, 
-			 					     GeographicPoint goal,
+    }
+
+    /** Find the path from start to goal using breadth first search
+     *
+     * @param start The starting location
+     * @param goal The goal location
+     * @param nodeSearched A hook for visualization.  See assignment instructions for how to use it.
+     * @return The list of intersections that form the shortest (unweighted)
+     *   path from start to goal (including both start and goal).
+     */
+    public List<GeographicPoint> bfs(GeographicPoint start,
+                                     GeographicPoint goal,
                                      Consumer<GeographicPoint> nodeSearched)
-	{
-	    // Initializing data structures
+    {
+        // Initializing data structures
         HashSet<GeographicPoint> visited = new HashSet<>();
         Queue<GeographicPoint> toExplore = new LinkedList<>();
         HashMap<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
@@ -196,7 +196,51 @@ public class MapGraph {
             System.out.println("No path exists");
             return new ArrayList<>();
         }
-	}
+    }
+
+    /**
+     * Helper method for bfs(...) that contains searching logic
+     * @param goal The goal location
+     * @param visited Set to keep track of visited locations
+     * @param toExplore Queue to process locations one by one
+     * @param parentMap Map to keep track of connections between locations
+     * @param nodeSearched Consumer used for adding visualization feature to MapApp tool
+     * @return true if path is found, false otherwise
+     */
+    private boolean bfsSearch(GeographicPoint goal,
+                              HashSet<GeographicPoint> visited,
+                              Queue<GeographicPoint> toExplore,
+                              HashMap<GeographicPoint, GeographicPoint> parentMap,
+                              Consumer<GeographicPoint> nodeSearched)
+    {
+        while (!toExplore.isEmpty()) {
+            GeographicPoint curr = toExplore.remove();
+            if (curr.equals(goal)) {
+                return true;
+            }
+            List<GeographicPoint> geographicPoints = new ArrayList<>();
+            for (Node node : nodeSet){
+                if (node.equals(new Node((curr)))) {
+                    List<Edge> edges = node.getEdges();
+                    for (Edge edge : edges){
+                        GeographicPoint geoPoint2 = edge.getGeoPoint2();
+                        geographicPoints.add(geoPoint2);
+                    }
+                }
+            }
+            ListIterator<GeographicPoint> it = geographicPoints.listIterator(geographicPoints.size());
+            while (it.hasPrevious()) {
+                GeographicPoint next = it.previous();
+                nodeSearched.accept(next);
+                if (!visited.contains(next)) {
+                    visited.add(next);
+                    parentMap.put(next, curr);
+                    toExplore.add(next);
+                }
+            }
+        }
+        return false;
+    }
 
     /**
      * Helper method for bfs(...) that constructs and returns path from start to goal
@@ -219,123 +263,135 @@ public class MapGraph {
         return path;
     }
 
-    /**
-     * Helper method for bfs(...) that contains searching logic
+    /** Find the path from start to goal using Dijkstra's algorithm
+     *
+     * @param start The starting location
      * @param goal The goal location
-     * @param visited Set to keep track of visited locations
-     * @param toExplore Queue to process locations one by one
-     * @param parentMap Map to keep track of connections between locations
-     * @param nodeSearched Consumer used for adding visualization feature to MapApp tool
-     * @return true if path is found, false otherwise
+     * @return The list of intersections that form the shortest path from
+     *   start to goal (including both start and goal).
      */
-    private boolean bfsSearch(GeographicPoint goal,
-                              HashSet<GeographicPoint> visited,
-                              Queue<GeographicPoint> toExplore,
-                              HashMap<GeographicPoint, GeographicPoint> parentMap,
-                              Consumer<GeographicPoint> nodeSearched)
-    {
-		while (!toExplore.isEmpty()) {
-            GeographicPoint curr = toExplore.remove();
-            if (curr.equals(goal)) {
-				return true;
-            }
-            List<Node> neighborNodes = adjList.get(new Node(curr));
-            List<GeographicPoint> geographicPoints = new ArrayList<>();
-            for (Node node : neighborNodes) {
-                geographicPoints.add(node.getGeoPoint());
-            }
-            ListIterator<GeographicPoint> it = geographicPoints.listIterator(geographicPoints.size());
-            while (it.hasPrevious()) {
-                GeographicPoint next = it.previous();
-                nodeSearched.accept(next);
-                if (!visited.contains(next)) {
-                    visited.add(next);
-                    parentMap.put(next, curr);
-                    toExplore.add(next);
-                }
-            }
-        }
-		return false;
-	}
-
-
-	/** Find the path from start to goal using Dijkstra's algorithm
-	 * 
-	 * @param start The starting location
-	 * @param goal The goal location
-	 * @return The list of intersections that form the shortest path from 
-	 *   start to goal (including both start and goal).
-	 */
-	public List<GeographicPoint> dijkstra(GeographicPoint start, GeographicPoint goal) {
-		// Dummy variable for calling the search algorithms
-		// You do not need to change this method.
+    public List<GeographicPoint> dijkstra(GeographicPoint start, GeographicPoint goal) {
+        // Dummy variable for calling the search algorithms
+        // You do not need to change this method.
         Consumer<GeographicPoint> temp = (x) -> {};
         return dijkstra(start, goal, temp);
-	}
-	
-	/** Find the path from start to goal using Dijkstra's algorithm
-	 * 
-	 * @param start The starting location
-	 * @param goal The goal location
-	 * @param nodeSearched A hook for visualization.  See assignment instructions for how to use it.
-	 * @return The list of intersections that form the shortest path from 
-	 *   start to goal (including both start and goal).
-	 */
-	public List<GeographicPoint> dijkstra(GeographicPoint start, 
-										  GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
-	{
-		// TODO: Implement this method in WEEK 4
+    }
 
-		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
-
+    /** Find the path from start to goal using Dijkstra's algorithm
+     *
+     * @param start The starting location
+     * @param goal The goal location
+     * @param nodeSearched A hook for visualization.  See assignment instructions for how to use it.
+     * @return The list of intersections that form the shortest path from
+     *   start to goal (including both start and goal).
+     */
+    public List<GeographicPoint> dijkstra(GeographicPoint start,
+                                          GeographicPoint goal,
+                                          Consumer<GeographicPoint> nodeSearched)
+    {
+        // TODO: Implement this method in WEEK 4
         PriorityQueue<Node> toExplore = new PriorityQueue<>();
         HashSet<Node> visited = new HashSet<>();
         HashMap<Node, Node> parentMap = new HashMap<>();
 
-        toExplore.add(new Node(start));
+        Node startNode = getNodeByGeoPoint(start);
+        Node goalNode = getNodeByGeoPoint(goal);
 
+        startNode.setDistance(0);
+        toExplore.add(startNode);
 
+        while (!toExplore.isEmpty()) {
+            Node currNode = toExplore.remove();
+            if (!visited.contains(currNode)) {
+                visited.add(currNode);
+                if (currNode.equals(goalNode)) {
+                    LinkedList<GeographicPoint> path = new LinkedList<>();
+                    GeographicPoint curr = goal;
+                    while (!curr.equals(start)) {
+                        path.addFirst(curr);
+                        curr = parentMap.get(getNodeByGeoPoint(curr)).getGeoPoint();
+                    }
+                    path.addFirst(start);
+                    return path;
+                }
+                for (Edge edge1 : currNode.getEdges()){
+                    GeographicPoint geoPoint2 = edge1.getGeoPoint2();
+                    Node neighbor = getNodeByGeoPoint(geoPoint2);
+                    if (!visited.contains(neighbor)) {
+                        nodeSearched.accept(neighbor.getGeoPoint());
+                        double distance = 0;
+                        for (Edge edge: currNode.getEdges()){
+                            if (edge.getGeoPoint2().equals(neighbor.getGeoPoint())) {
+                                distance = edge.getLength();
+                                break;
+                            }
+                        }
+                        if (!toExplore.contains(neighbor)) {
+                            neighbor.setDistance(currNode.getDistance() + distance);
+                            parentMap.put(neighbor, currNode);
+                            toExplore.add(neighbor);
+                        } else {
+                            if (currNode.getDistance() + distance < neighbor.getDistance()) {
+                                neighbor.setDistance(currNode.getDistance() + distance);
+                                parentMap.put(neighbor, currNode);
+                                toExplore.add(neighbor);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println("No path exists");
+        return new ArrayList<>();
+    }
 
-        return null;
-	}
+    private Node getNodeByGeoPoint(GeographicPoint geoPoint) {
+        Node goalNode = null;
+        for (Node node : nodeSet) {
+            if (node.getGeoPoint().equals(geoPoint)) {
+                goalNode = node;
+                break;
+            }
+        }
+        return goalNode;
+    }
 
-	/** Find the path from start to goal using A-Star search
-	 * 
-	 * @param start The starting location
-	 * @param goal The goal location
-	 * @return The list of intersections that form the shortest path from 
-	 *   start to goal (including both start and goal).
-	 */
-	public List<GeographicPoint> aStarSearch(GeographicPoint start, GeographicPoint goal) {
-		// Dummy variable for calling the search algorithms
+    /** Find the path from start to goal using A-Star search
+     *
+     * @param start The starting location
+     * @param goal The goal location
+     * @return The list of intersections that form the shortest path from
+     *   start to goal (including both start and goal).
+     */
+    public List<GeographicPoint> aStarSearch(GeographicPoint start, GeographicPoint goal) {
+        // Dummy variable for calling the search algorithms
         Consumer<GeographicPoint> temp = (x) -> {};
         return aStarSearch(start, goal, temp);
-	}
-	
-	/** Find the path from start to goal using A-Star search
-	 * 
-	 * @param start The starting location
-	 * @param goal The goal location
-	 * @param nodeSearched A hook for visualization.  See assignment instructions for how to use it.
-	 * @return The list of intersections that form the shortest path from 
-	 *   start to goal (including both start and goal).
-	 */
-	public List<GeographicPoint> aStarSearch(GeographicPoint start, 
-											 GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
-	{
-		// TODO: Implement this method in WEEK 4
-		
-		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
-		
-		return null;
-	}
+    }
 
-	
-	
-	public static void main(String[] args)
-	{
+    /** Find the path from start to goal using A-Star search
+     *
+     * @param start The starting location
+     * @param goal The goal location
+     * @param nodeSearched A hook for visualization.  See assignment instructions for how to use it.
+     * @return The list of intersections that form the shortest path from
+     *   start to goal (including both start and goal).
+     */
+    public List<GeographicPoint> aStarSearch(GeographicPoint start,
+                                             GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
+    {
+        // TODO: Implement this method in WEEK 4
+
+        // Hook for visualization.  See writeup.
+        //nodeSearched.accept(next.getLocation());
+
+        return null;
+    }
+
+
+
+    public static void main(String[] args)
+    {
 //		System.out.print("Making a new map...");
 //		MapGraph firstMap = new MapGraph();
 //		System.out.print("DONE. \nLoading the map...");
@@ -347,7 +403,7 @@ public class MapGraph {
 //        System.out.println("BFS path : " + firstMap.bfs(testStart1, testEnd1));
 
 
-		// You can use this method for testing.  
+        // You can use this method for testing.
 		
 		
 		/* Here are some test cases you should try before you attempt 
@@ -355,17 +411,17 @@ public class MapGraph {
 		 * programming assignment.
 		 */
 
-		MapGraph simpleTestMap = new MapGraph();
-		GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
+        MapGraph simpleTestMap = new MapGraph();
+        GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
 
-		GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
-		GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
+        GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
+        GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
 
-		System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
-		List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
-		System.out.println(testroute);
-		List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
-		System.out.println(testroute2);
+        System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
+        List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
+        System.out.println(testroute);
+        List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
+        System.out.println(testroute2);
 		
 		/*
 		MapGraph testMap = new MapGraph();
@@ -402,7 +458,7 @@ public class MapGraph {
 		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
 
 		*/
-		
-	}
-	
+
+    }
+
 }
