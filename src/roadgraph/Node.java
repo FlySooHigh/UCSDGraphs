@@ -10,8 +10,6 @@ public class Node implements Comparable{
     private GeographicPoint geoPoint;
     private List<Edge> egdes;
     private double distance;
-
-
     private double predictedDist;
 
     public Node(GeographicPoint geoPoint) {
