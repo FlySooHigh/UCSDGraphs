@@ -448,8 +448,9 @@ public class MapGraph {
     {
         List<Node> nodesToVisit = new ArrayList<>(nodeSet);
         Set<Node> visitedNodes = new HashSet<>();
-        Map<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
+        List<GeographicPoint> steps = new ArrayList<>();
 
+        steps.add(start);
         Node currNode = getNodeByGeoPoint(start);
 
         nodesToVisit.remove(currNode);
@@ -460,25 +461,56 @@ public class MapGraph {
 //          получаем список всех ребер
             List<Edge> currNodeEdges = currNode.getEdges();
 //          ищем ребро минимальной длины
-            Edge minEdge = findMinEdge(currNodeEdges);
+            Edge minEdge = findMinEdge(currNodeEdges, visitedNodes);
+//          если вернулся null - значит мы в тупике
+            if (minEdge == null) {
+//              нужно найти путь к ближайшей ноде из nodesToVisit
+                double minEstimatedDist = Double.MAX_VALUE;
+                Node closestNode = null;
+                for (Node node : nodesToVisit) {
+                    double pointsDistance = node.getGeoPoint().distance(currNode.getGeoPoint());
+                    if (minEstimatedDist > pointsDistance) {
+                        minEstimatedDist = pointsDistance;
+                        closestNode = node;
+                    }
+                }
+                List<GeographicPoint> pathFromAStar = aStarSearch(currNode.getGeoPoint(), closestNode.getGeoPoint());
+                for (int i = 1; i < pathFromAStar.size(); i++) {
+                    GeographicPoint geoPoint = pathFromAStar.get(i);
+                    steps.add(geoPoint);
+                    Node nodeByGeoPoint = getNodeByGeoPoint(geoPoint);
 
-            parentMap.put(minEdge.getGeoPoint2(), minEdge.getGeoPoint1());
-//          находим ноду по минимальному ребру
-            currNode = getNodeByGeoPoint(minEdge.getGeoPoint2());
+                    if (nodesToVisit.remove(nodeByGeoPoint)) {
+                        visitedNodes.add(nodeByGeoPoint);
+                    }
+                }
+                currNode = getNodeByGeoPoint(closestNode.getGeoPoint());
+            } else {
+                steps.add(minEdge.getGeoPoint2());
+    //          находим ноду по минимальному ребру
+                currNode = getNodeByGeoPoint(minEdge.getGeoPoint2());
+            }
 //          удаляем ее из списка нод, которые надо посетить
             nodesToVisit.remove(currNode);
 //          добавляем в сет посещенных нод
             visitedNodes.add(currNode);
         }
-        return null;
+        List<GeographicPoint> aStarPath = aStarSearch(currNode.getGeoPoint(), start);
+        for (int i = 1; i < aStarPath.size(); i++) {
+            steps.add(aStarPath.get(i));
+        }
+        return steps;
     }
 
-    private Edge findMinEdge(List<Edge> currNodeEdges) {
+    private Edge findMinEdge(List<Edge> currNodeEdges, Set<Node> visitedNodes) {
         double minEdgeLength = Double.MAX_VALUE;
         Edge edgeWithMinLength = null;
         for (Edge edge : currNodeEdges) {
             double edgeLength = edge.getLength();
-            if (minEdgeLength > edgeLength) {
+            Node node = getNodeByGeoPoint(edge.getGeoPoint2());
+//            todo почему добавились одинаковые элементы в HashSet ?
+            if (minEdgeLength > edgeLength
+                    && !visitedNodes.contains(node)) {
                 minEdgeLength = edgeLength;
                 edgeWithMinLength = edge;
             }

@@ -57,8 +57,8 @@ public class Node implements Comparable{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Node node = (Node) o;
-        return Double.compare(node.distance, distance) == 0 &&
-                Objects.equals(geoPoint, node.geoPoint);
+        return node.distance == distance &&
+                geoPoint.equals(node.geoPoint);
     }
 
     @Override
