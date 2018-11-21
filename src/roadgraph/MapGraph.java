@@ -446,30 +446,44 @@ public class MapGraph {
 
     public List<GeographicPoint> greedyAlgorithm(GeographicPoint start)
     {
-        PriorityQueue<Node> nodePriorityQueue = new PriorityQueue<>();
-        HashSet<Node> notVisitedNodes = new HashSet<>(nodeSet);
+        List<Node> nodesToVisit = new ArrayList<>(nodeSet);
+        Set<Node> visitedNodes = new HashSet<>();
         Map<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
 
-        Node startNode = getNodeByGeoPoint(start);
-        nodePriorityQueue.add(startNode);
+        Node currNode = getNodeByGeoPoint(start);
 
-        double edgeDistance = Double.MAX_VALUE;
-        GeographicPoint geoPoint2 = null;
+        nodesToVisit.remove(currNode);
+        visitedNodes.add(currNode);
 
-        while (!notVisitedNodes.isEmpty()) {
-            Node currNode = nodePriorityQueue.remove();
-            notVisitedNodes.remove(currNode);
-            for (Edge edge : currNode.getEdges()){
-                if (edgeDistance > edge.getLength() ) {
-                    edgeDistance = edge.getLength();
-                    geoPoint2 = edge.getGeoPoint2();
-                }
-            }
-            Node neighborNode = getNodeByGeoPoint(geoPoint2);
+//      пока не кончатся ноды
+        while (!nodesToVisit.isEmpty()) {
+//          получаем список всех ребер
+            List<Edge> currNodeEdges = currNode.getEdges();
+//          ищем ребро минимальной длины
+            Edge minEdge = findMinEdge(currNodeEdges);
 
+            parentMap.put(minEdge.getGeoPoint2(), minEdge.getGeoPoint1());
+//          находим ноду по минимальному ребру
+            currNode = getNodeByGeoPoint(minEdge.getGeoPoint2());
+//          удаляем ее из списка нод, которые надо посетить
+            nodesToVisit.remove(currNode);
+//          добавляем в сет посещенных нод
+            visitedNodes.add(currNode);
         }
-
         return null;
+    }
+
+    private Edge findMinEdge(List<Edge> currNodeEdges) {
+        double minEdgeLength = Double.MAX_VALUE;
+        Edge edgeWithMinLength = null;
+        for (Edge edge : currNodeEdges) {
+            double edgeLength = edge.getLength();
+            if (minEdgeLength > edgeLength) {
+                minEdgeLength = edgeLength;
+                edgeWithMinLength = edge;
+            }
+        }
+        return edgeWithMinLength;
     }
 
 //    PriorityQueue<Node> nodePriorityQueue = new PriorityQueue<>();
@@ -511,6 +525,12 @@ public class MapGraph {
 
     public static void main(String[] args)
     {
+        MapGraph simpleTestMap = new MapGraph();
+        GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
+        GeographicPoint testStart1 = new GeographicPoint(1.0, 1.0);
+        GeographicPoint testEnd1 = new GeographicPoint(8.0, -1.0);
+        simpleTestMap.greedyAlgorithm(testStart1);
+
 //		System.out.print("Making a new map...");
 //		MapGraph firstMap = new MapGraph();
 //		System.out.print("DONE. \nLoading the map...");
@@ -532,17 +552,17 @@ public class MapGraph {
 
 //		Dijkstra TEST 1
 
-        MapGraph simpleTestMap = new MapGraph();
-        GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
-
-        GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
-        GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
-
-        System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
-        List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
-        System.out.println(testroute);
-        List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
-        System.out.println(testroute2);
+//        MapGraph simpleTestMap = new MapGraph();
+//        GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
+//
+//        GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
+//        GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
+//
+//        System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
+//        List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
+//        System.out.println(testroute);
+//        List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
+//        System.out.println(testroute2);
 
 //		Dijkstra TEST 2
 
