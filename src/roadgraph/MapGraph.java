@@ -456,54 +456,81 @@ public class MapGraph {
         nodesToVisit.remove(currNode);
         visitedNodes.add(currNode);
 
-//      пока не кончатся ноды
+//      while we have nodes to visit
         while (!nodesToVisit.isEmpty()) {
-//          получаем список всех ребер
+//          get all available egdes
             List<Edge> currNodeEdges = currNode.getEdges();
-//          ищем ребро минимальной длины
+//          find smallest edge
             Edge minEdge = findMinEdge(currNodeEdges, visitedNodes);
-//          если вернулся null - значит мы в тупике
+//          if we get null - it means we are in deadend or in node, which neighbors we visited
             if (minEdge == null) {
-//              нужно найти путь к ближайшей ноде из nodesToVisit
-                double minEstimatedDist = Double.MAX_VALUE;
-                Node closestNode = null;
-                for (Node node : nodesToVisit) {
-                    double pointsDistance = node.getGeoPoint().distance(currNode.getGeoPoint());
-                    if (minEstimatedDist > pointsDistance) {
-                        minEstimatedDist = pointsDistance;
-                        closestNode = node;
-                    }
-                }
+//              find the closest node from nodesToVisit
+                Node closestNode = findClosestFromNotVisited(nodesToVisit, currNode);
+//              use A* search algorithm to find path from where we are to closest node
                 List<GeographicPoint> pathFromAStar = aStarSearch(currNode.getGeoPoint(), closestNode.getGeoPoint());
-                for (int i = 1; i < pathFromAStar.size(); i++) {
-                    GeographicPoint geoPoint = pathFromAStar.get(i);
-                    steps.add(geoPoint);
-                    Node nodeByGeoPoint = getNodeByGeoPoint(geoPoint);
-
-                    if (nodesToVisit.remove(nodeByGeoPoint)) {
-                        visitedNodes.add(nodeByGeoPoint);
-                    }
-                }
+                addPathToSteps(nodesToVisit, visitedNodes, steps, pathFromAStar);
                 currNode = getNodeByGeoPoint(closestNode.getGeoPoint());
             } else {
                 steps.add(minEdge.getGeoPoint2());
-    //          находим ноду по минимальному ребру
+    //          get the other end node of the smallest edge
                 currNode = getNodeByGeoPoint(minEdge.getGeoPoint2());
-    //          удаляем ее из списка нод, которые надо посетить
                 nodesToVisit.remove(currNode);
-    //          добавляем в сет посещенных нод
                 visitedNodes.add(currNode);
             }
         }
+//      after we visited all nodes, again use A* search to find the best path to start node
         List<GeographicPoint> aStarPath = aStarSearch(currNode.getGeoPoint(), start);
         for (int i = 1; i < aStarPath.size(); i++) {
             steps.add(aStarPath.get(i));
         }
         System.out.println("Number of nodes: " + nodeSet.size());
-        System.out.println("Total number of visited locations: " + steps.size());
+        System.out.println("Total number of visited nodes: " + steps.size());
         return steps;
     }
 
+    /**
+     * Helper method to add path found by A* algorithm to steps we take from start
+     * @param nodesToVisit
+     * @param visitedNodes
+     * @param steps
+     * @param pathFromAStar
+     */
+    private void addPathToSteps(List<Node> nodesToVisit, Set<Node> visitedNodes, List<GeographicPoint> steps, List<GeographicPoint> pathFromAStar) {
+        for (int i = 1; i < pathFromAStar.size(); i++) {
+            GeographicPoint geoPoint = pathFromAStar.get(i);
+            steps.add(geoPoint);
+            Node nodeByGeoPoint = getNodeByGeoPoint(geoPoint);
+            if (nodesToVisit.remove(nodeByGeoPoint)) {
+                visitedNodes.add(nodeByGeoPoint);
+            }
+        }
+    }
+
+    /**
+     * Helper method to find the closest node among those that we have not visited yet
+     * @param nodesToVisit
+     * @param currNode
+     * @return
+     */
+    private Node findClosestFromNotVisited(List<Node> nodesToVisit, Node currNode) {
+        double minEstimatedDist = Double.MAX_VALUE;
+        Node closestNode = null;
+        for (Node node : nodesToVisit) {
+            double pointsDistance = node.getGeoPoint().distance(currNode.getGeoPoint());
+            if (minEstimatedDist > pointsDistance) {
+                minEstimatedDist = pointsDistance;
+                closestNode = node;
+            }
+        }
+        return closestNode;
+    }
+
+    /**
+     * Helper method to find smallest egde
+     * @param currNodeEdges
+     * @param visitedNodes
+     * @return
+     */
     private Edge findMinEdge(List<Edge> currNodeEdges, Set<Node> visitedNodes) {
         double minEdgeLength = Double.MAX_VALUE;
         Edge edgeWithMinLength = null;
@@ -524,7 +551,6 @@ public class MapGraph {
         MapGraph simpleTestMap = new MapGraph();
         GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
         GeographicPoint testStart1 = new GeographicPoint(1.0, 1.0);
-        GeographicPoint testEnd1 = new GeographicPoint(8.0, -1.0);
         System.out.println(simpleTestMap.greedyAlgorithm(testStart1));
 
 //		System.out.print("Making a new map...");
@@ -616,8 +642,5 @@ public class MapGraph {
 //        System.out.println(route);
 //        List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
 //        System.out.println(route2);
-
-
     }
-
 }

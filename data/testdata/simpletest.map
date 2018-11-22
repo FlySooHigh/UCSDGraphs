@@ -20,3 +20,5 @@
 8.0 -1.0 6.5 0.0 "next" "residential"
 4.0 -1.0 4.0 0.0 "state" "city street"
 5.0 1.0 4.0 0.0 "short" "connector"
+4.0 2.0 4.0 2.5 "state" "city street"
+4.0 2.5 4.0 2.0 "short" "residential"
