@@ -489,16 +489,18 @@ public class MapGraph {
                 steps.add(minEdge.getGeoPoint2());
     //          находим ноду по минимальному ребру
                 currNode = getNodeByGeoPoint(minEdge.getGeoPoint2());
+    //          удаляем ее из списка нод, которые надо посетить
+                nodesToVisit.remove(currNode);
+    //          добавляем в сет посещенных нод
+                visitedNodes.add(currNode);
             }
-//          удаляем ее из списка нод, которые надо посетить
-            nodesToVisit.remove(currNode);
-//          добавляем в сет посещенных нод
-            visitedNodes.add(currNode);
         }
         List<GeographicPoint> aStarPath = aStarSearch(currNode.getGeoPoint(), start);
         for (int i = 1; i < aStarPath.size(); i++) {
             steps.add(aStarPath.get(i));
         }
+        System.out.println("Number of nodes: " + nodeSet.size());
+        System.out.println("Total number of visited locations: " + steps.size());
         return steps;
     }
 
@@ -508,7 +510,6 @@ public class MapGraph {
         for (Edge edge : currNodeEdges) {
             double edgeLength = edge.getLength();
             Node node = getNodeByGeoPoint(edge.getGeoPoint2());
-//            todo почему добавились одинаковые элементы в HashSet ?
             if (minEdgeLength > edgeLength
                     && !visitedNodes.contains(node)) {
                 minEdgeLength = edgeLength;
@@ -518,50 +519,13 @@ public class MapGraph {
         return edgeWithMinLength;
     }
 
-//    PriorityQueue<Node> nodePriorityQueue = new PriorityQueue<>();
-//    HashSet<Node> visitedNodes = new HashSet<>();
-//    HashMap<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
-//
-//    Node startNode = getNodeByGeoPoint(start);
-//    Node goalNode = getNodeByGeoPoint(goal);
-//
-//        startNode.setDistance(0);
-//        nodePriorityQueue.add(startNode);
-//    int count = 0;
-//
-//        while (!nodePriorityQueue.isEmpty()) {
-//        Node currNode = nodePriorityQueue.remove();
-//        if (!visitedNodes.contains(currNode)) {
-//            visitedNodes.add(currNode);
-//            if (currNode.equals(goalNode)) {
-//                System.out.println(count);
-//                return constructPath(start, goal, parentMap);
-//            }
-//            for (Edge edge : currNode.getEdges()){
-//                GeographicPoint geoPoint2 = edge.getGeoPoint2();
-//                Node neighborNode = getNodeByGeoPoint(geoPoint2);
-//                if (!visitedNodes.contains(neighborNode)) {
-//                    double edgeLength = edge.getLength();
-//                    double distFromStart = currNode.getDistance() + edgeLength;
-//                    if (!nodePriorityQueue.contains(neighborNode)) {
-//                        updatePQueue(nodePriorityQueue, parentMap, currNode, neighborNode, distFromStart);
-//                    } else {
-//                        if (distFromStart < neighborNode.getDistance()) {
-//                            updatePQueue(nodePriorityQueue, parentMap, currNode, neighborNode, distFromStart);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-
     public static void main(String[] args)
     {
         MapGraph simpleTestMap = new MapGraph();
         GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
         GeographicPoint testStart1 = new GeographicPoint(1.0, 1.0);
         GeographicPoint testEnd1 = new GeographicPoint(8.0, -1.0);
-        simpleTestMap.greedyAlgorithm(testStart1);
+        System.out.println(simpleTestMap.greedyAlgorithm(testStart1));
 
 //		System.out.print("Making a new map...");
 //		MapGraph firstMap = new MapGraph();

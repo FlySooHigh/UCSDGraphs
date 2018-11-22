@@ -57,13 +57,13 @@ public class Node implements Comparable{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Node node = (Node) o;
-        return node.distance == distance &&
+        return (node.distance - distance < 1E-6) &&
                 geoPoint.equals(node.geoPoint);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(geoPoint, distance);
+        return Objects.hash(geoPoint);
     }
 
     @Override
